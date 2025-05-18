@@ -77,7 +77,26 @@ while running:
     if future_sight_active:
         print("Future Sight Active!")
 
+        # Draw predicted enemy path (placeholder: straight line to player)
+        # This is a very basic prediction and will be improved later
+        current_x, current_y = enemy_pos
+        target_x, target_y = player_pos
+
+        # Calculate steps to draw
+        steps = max(abs(target_x - current_x), abs(target_y - current_y))
+        if steps > 0:
+            x_increment = (target_x - current_x) / steps
+            y_increment = (target_y - current_y) / steps
+
+            for i in range(steps + 1):
+                predicted_x = int(current_x + x_increment * i)
+                predicted_y = int(current_y + y_increment * i)
     # Drawing
+                # Draw predicted enemy position (as small green squares)
+                predicted_rect = pygame.Rect(predicted_x * cell_size, predicted_y * cell_size, cell_size, cell_size)
+                pygame.draw.rect(screen, green, predicted_rect, 2) # Draw outline
+
+
     screen.fill((0, 0, 0))  # Fill the background with black
 
     # Draw the grid
@@ -96,9 +115,25 @@ while running:
     pygame.draw.rect(screen, red, enemy_rect)
 
     # Enemy turn (placeholder)
-    if current_turn == "enemy":
+    if current_turn == "enemy" and not future_sight_active: # Only move if future sight is not active
         print("Enemy turn!")
-        pygame.time.delay(500) # Simulate enemy thinking/action time
+
+        # Simple enemy AI: move towards the player
+        delta_x = player_pos[0] - enemy_pos[0]
+        delta_y = player_pos[1] - enemy_pos[1]
+
+        if abs(delta_x) > abs(delta_y):
+            # Move horizontally
+            if delta_x > 0 and enemy_pos[0] < grid_size - 1:
+                enemy_pos[0] += 1
+            elif delta_x < 0 and enemy_pos[0] > 0:
+                enemy_pos[0] -= 1
+        else:
+            # Move vertically
+            if delta_y > 0 and enemy_pos[1] < grid_size - 1:
+                enemy_pos[1] += 1
+            elif delta_y < 0 and enemy_pos[1] > 0:
+                enemy_pos[1] -= 1
         current_turn = "player"
 
     # Update the display
