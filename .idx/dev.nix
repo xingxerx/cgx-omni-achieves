@@ -9,6 +9,9 @@
     pkgs.terraform
     pkgs.nodejs
     pkgs.nodePackages.pnpm
+    pkgs.python3 # Added python3
+    pkgs.python310Packages.discord_py # Added discord.py
+    pkgs.python310Packages.python-dotenv # Added python-dotenv
   ];
 
   # Sets environment variables in the workspace
