@@ -44,5 +44,26 @@
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.9",
     "typescript": "~5.5.2"
-  }
+  },
+  "description": "Welcome to the _Planning with the Gemini API_ sample app, an AI-powered web app for to-do lists! It's an [Angular](https://angular.io/) app built using the Gemini API and Firebase.",
+  "main": "tailwind.config.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xingxerx/cgx-omni-achieves.git"
+  },
+  "keywords": [
+    "CGX",
+    "Omni",
+    "Arch",
+    "Archieves"
+  ],
+  "author": "xingxerx",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xingxerx/cgx-omni-achieves/issues"
+  },
+  "homepage": "https://github.com/xingxerx/cgx-omni-achieves#readme"
 }
