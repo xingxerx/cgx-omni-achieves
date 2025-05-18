@@ -15,6 +15,12 @@ cell_size = 50
 # Player position (in grid coordinates)
 player_pos = [0, 0]
 
+# Turn management
+current_turn = "player"
+
+# Future-sight
+future_sight_active = False
+
 # Enemy position (in grid coordinates)
 enemy_pos = [grid_size - 1, grid_size - 1] # Example starting position for the enemy
 
@@ -36,20 +42,40 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                if player_pos[0] > 0:
-                    player_pos[0] -= 1
-            if event.key == pygame.K_RIGHT:
-                if player_pos[0] < grid_size - 1:
-                    player_pos[0] += 1
-            if event.key == pygame.K_UP:
-                if player_pos[1] > 0:
-                    player_pos[1] -= 1
-            if event.key == pygame.K_DOWN:
-                if player_pos[1] < grid_size - 1:
-                    player_pos[1] += 1
+        
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            future_sight_active = not future_sight_active
 
+        if current_turn == "player":
+            if event.type == pygame.KEYDOWN:
+                moved = False
+                if event.key == pygame.K_LEFT:
+                    if player_pos[0] > 0:
+                        player_pos[0] -= 1
+                        moved = True
+                elif event.key == pygame.K_RIGHT:
+                    if player_pos[0] < grid_size - 1:
+                        player_pos[0] += 1
+                        moved = True
+                elif event.key == pygame.K_UP:
+                    if player_pos[1] > 0:
+                        player_pos[1] -= 1
+                        moved = True
+                elif event.key == pygame.K_DOWN:
+                    if player_pos[1] < grid_size - 1:
+                        player_pos[1] += 1
+                        moved = True
+
+                if moved:
+                    current_turn = "enemy"
+
+    # Check for combat after player move
+    if player_pos == enemy_pos:
+        print("Combat!")
+
+    # Future-sight placeholder
+    if future_sight_active:
+        print("Future Sight Active!")
 
     # Drawing
     screen.fill((0, 0, 0))  # Fill the background with black
@@ -68,6 +94,12 @@ while running:
     # Draw the enemy
     enemy_rect = pygame.Rect(enemy_pos[0] * cell_size, enemy_pos[1] * cell_size, cell_size, cell_size)
     pygame.draw.rect(screen, red, enemy_rect)
+
+    # Enemy turn (placeholder)
+    if current_turn == "enemy":
+        print("Enemy turn!")
+        pygame.time.delay(500) # Simulate enemy thinking/action time
+        current_turn = "player"
 
     # Update the display
     pygame.display.flip()
