@@ -1,5 +1,6 @@
 import pygame
 import sys
+import pygame.font
 
 # Initialize Pygame
 pygame.init()
@@ -21,6 +22,9 @@ current_turn = "player"
 # Future-sight
 future_sight_active = False
 
+# Fate Points
+fate_points = 5
+
 # Enemy position (in grid coordinates)
 enemy_pos = [grid_size - 1, grid_size - 1] # Example starting position for the enemy
 
@@ -29,8 +33,20 @@ white = (255, 255, 255)
 blue = (0, 0, 255)
 red = (255, 0, 0)
 
+# Health
+player_health = 10
+enemy_health = 10
+
+green = (0, 255, 0) # Color for future sight path
 # Create the screen surface
 screen = pygame.display.set_mode((screen_width, screen_height))
+
+# Font for text display
+font = pygame.font.Font(None, 36) # Default font, size 36
+
+black = (0, 0, 0)
+predicted_enemy_health_display = None
+predicted_combat_pos_display = None
 
 # Set the window title
 pygame.display.set_caption("Chronicle Fates")
@@ -42,11 +58,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            future_sight_active = not future_sight_active
+
+        # Reset predicted combat display at the start of player turn event handling
+        if current_turn == "player":
+            predicted_enemy_health_display = None
+            predicted_combat_pos_display = None
 
         if current_turn == "player":
+
             if event.type == pygame.KEYDOWN:
                 moved = False
                 if event.key == pygame.K_LEFT:
@@ -66,38 +85,54 @@ while running:
                         player_pos[1] += 1
                         moved = True
 
+                # Check for predicted combat outcome if future sight is active
+                if future_sight_active:
+                    temp_player_pos = list(player_pos) # Create a temporary copy
+                    if event.key == pygame.K_LEFT and temp_player_pos[0] > 0:
+                        temp_player_pos[0] -= 1
+                    elif event.key == pygame.K_RIGHT and temp_player_pos[0] < grid_size - 1:
+                        temp_player_pos[0] += 1
+                    elif event.key == pygame.K_UP and temp_player_pos[1] > 0:
+                        temp_player_pos[1] -= 1
+                    elif event.key == pygame.K_DOWN and temp_player_pos[1] < grid_size - 1:
+                        temp_player_pos[1] += 1
+
+                    if temp_player_pos == enemy_pos and enemy_health > 0:
+                         predicted_enemy_health_display = enemy_health - 1
+                         predicted_combat_pos_display = enemy_pos
+
+
+
                 if moved:
+                    # Check for combat after player move
+ print(f"Player moved to: {player_pos}")
+                    if player_pos == enemy_pos:
+                        print("Combat!")
+                        # Simple combat logic: player deals 1 damage
+                        if enemy_health > 0: # Ensure enemy is still alive before dealing damage
+                            enemy_health -= 1
+                            if enemy_health <= 0:
+                                print("Enemy defeated!")
+                                enemy_pos = [-1, -1] # Move enemy off-screen
+
+                        print(f"Enemy health: {enemy_health}")
+                        if enemy_health <= 0:
+                            print("Enemy defeated!")
+                            enemy_pos = [-1, -1] # Move enemy off-screen
                     current_turn = "enemy"
 
-    # Check for combat after player move
-    if player_pos == enemy_pos:
-        print("Combat!")
+        # Toggle future sight with Fate Points
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                if not future_sight_active and fate_points > 0:
+                    future_sight_active = True
+                    fate_points -= 1
+                    print("Future Sight Active!")
+                elif future_sight_active:
+                    future_sight_active = False
 
-    # Future-sight placeholder
-    if future_sight_active:
-        print("Future Sight Active!")
-
-        # Draw predicted enemy path (placeholder: straight line to player)
-        # This is a very basic prediction and will be improved later
-        current_x, current_y = enemy_pos
-        target_x, target_y = player_pos
-
-        # Calculate steps to draw
-        steps = max(abs(target_x - current_x), abs(target_y - current_y))
-        if steps > 0:
-            x_increment = (target_x - current_x) / steps
-            y_increment = (target_y - current_y) / steps
-
-            for i in range(steps + 1):
-                predicted_x = int(current_x + x_increment * i)
-                predicted_y = int(current_y + y_increment * i)
     # Drawing
-                # Draw predicted enemy position (as small green squares)
-                predicted_rect = pygame.Rect(predicted_x * cell_size, predicted_y * cell_size, cell_size, cell_size)
-                pygame.draw.rect(screen, green, predicted_rect, 2) # Draw outline
-
-
-    screen.fill((0, 0, 0))  # Fill the background with black
+    screen.fill(black)  # Fill the background with black
 
     # Draw the grid
     for x in range(grid_size):
@@ -111,30 +146,71 @@ while running:
     pygame.draw.rect(screen, blue, player_rect)
 
     # Draw the enemy
-    enemy_rect = pygame.Rect(enemy_pos[0] * cell_size, enemy_pos[1] * cell_size, cell_size, cell_size)
-    pygame.draw.rect(screen, red, enemy_rect)
+    if enemy_health > 0:
+        enemy_rect = pygame.Rect(enemy_pos[0] * cell_size, enemy_pos[1] * cell_size, cell_size, cell_size)
+        pygame.draw.rect(screen, red, enemy_rect)
 
-    # Enemy turn (placeholder)
-    if current_turn == "enemy" and not future_sight_active: # Only move if future sight is not active
-        print("Enemy turn!")
+    # Draw predicted combat outcome
+    if predicted_enemy_health_display is not None and predicted_combat_pos_display is not None:
+        text_surface = font.render(f"Pred. HP: {predicted_enemy_health_display}", True, green)
+        text_rect = text_surface.get_rect(center=(predicted_combat_pos_display[0] * cell_size + cell_size // 2, predicted_combat_pos_display[1] * cell_size + cell_size // 2 - 20)) # Adjust position to be above enemy
+        screen.blit(text_surface, text_rect)
 
+    # Draw Fate Points
+    fate_points_text = font.render(f"Fate Points: {fate_points}", True, white)
+    screen.blit(fate_points_text, (10, 10))
+
+    # Enemy turn
+    if current_turn == "enemy":
+        print("\nEnemy turn!")
+        print(f"Enemy starting position: {enemy_pos}")
         # Simple enemy AI: move towards the player
-        delta_x = player_pos[0] - enemy_pos[0]
-        delta_y = player_pos[1] - enemy_pos[1]
+        if enemy_health > 0: # Only move if enemy is alive
+            delta_x = player_pos[0] - enemy_pos[0]
+            delta_y = player_pos[1] - enemy_pos[1]
+            moved = False
 
-        if abs(delta_x) > abs(delta_y):
-            # Move horizontally
-            if delta_x > 0 and enemy_pos[0] < grid_size - 1:
-                enemy_pos[0] += 1
-            elif delta_x < 0 and enemy_pos[0] > 0:
-                enemy_pos[0] -= 1
-        else:
-            # Move vertically
-            if delta_y > 0 and enemy_pos[1] < grid_size - 1:
-                enemy_pos[1] += 1
-            elif delta_y < 0 and enemy_pos[1] > 0:
-                enemy_pos[1] -= 1
+            # Prioritize movement along the axis with the larger difference
+            if abs(delta_x) > abs(delta_y):
+                # Move horizontally
+                if delta_x > 0 and enemy_pos[0] < grid_size - 1:
+                    enemy_pos[0] += 1
+                    moved = True
+                elif delta_x > 0 and enemy_pos[0] == grid_size - 1:
+                    print("Enemy blocked by right boundary.")
+                elif delta_x < 0 and enemy_pos[0] > 0:
+                    enemy_pos[0] -= 1
+                    moved = True
+            else:
+                # Move vertically
+                if delta_y > 0 and enemy_pos[1] < grid_size - 1:
+                    enemy_pos[1] += 1
+                elif delta_y < 0 and enemy_pos[1] > 0:
+                    enemy_pos[1] -= 1
+
+            if not moved and (abs(delta_x) > 0 or abs(delta_y) > 0):
+                 print("Enemy blocked by boundary.")
+
+            print(f"Enemy moved to: {enemy_pos}")
+            # Check for combat after enemy move
+            if player_pos == enemy_pos:
+                print("Combat!")
+                # Simple combat logic: enemy deals 1 damage
+                if player_health > 0: # Ensure player is still alive
+                    player_health -= 1
+                    print(f"Player health: {player_health}")
+                    if player_health <= 0:
+                        print("Player defeated!")
+                        # Game over logic would go here
+
+        pygame.time.delay(500) # Simulate enemy thinking/action time
         current_turn = "player"
+
+    # Draw future sight path (placeholder)
+ # Simple predicted path: straight line to player
+ # This was removed as the predicted path drawing logic is separate from the turn logic.
+ # Leaving this 'if future_sight_active: pass' block in the original code was a mistake.
+
 
     # Update the display
     pygame.display.flip()
