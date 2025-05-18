@@ -16,6 +16,19 @@ cell_size = 50
 # Player position (in grid coordinates)
 player_pos = [0, 0]
 
+# Health
+player_health = 10
+enemy_health = 10
+
+# Combat Logic Function
+def handle_combat(player_pos, enemy_pos, enemy_health):
+ enemy_defeated = False
+ if player_pos == enemy_pos and enemy_health > 0:
+ enemy_health -= 1
+ if enemy_health <= 0:
+ enemy_defeated = True
+ return enemy_health, enemy_defeated
+
 # Turn management
 current_turn = "player"
 
@@ -32,10 +45,6 @@ enemy_pos = [grid_size - 1, grid_size - 1] # Example starting position for the e
 white = (255, 255, 255)
 blue = (0, 0, 255)
 red = (255, 0, 0)
-
-# Health
-player_health = 10
-enemy_health = 10
 
 green = (0, 255, 0) # Color for future sight path
 # Create the screen surface
@@ -86,22 +95,15 @@ while running:
                         moved = True
 
                 # Check for predicted combat outcome if future sight is active
-                if future_sight_active:
-                    temp_player_pos = list(player_pos) # Create a temporary copy
-                    if event.key == pygame.K_LEFT and temp_player_pos[0] > 0:
-                        temp_player_pos[0] -= 1
-                    elif event.key == pygame.K_RIGHT and temp_player_pos[0] < grid_size - 1:
-                        temp_player_pos[0] += 1
-                    elif event.key == pygame.K_UP and temp_player_pos[1] > 0:
-                        temp_player_pos[1] -= 1
-                    elif event.key == pygame.K_DOWN and temp_player_pos[1] < grid_size - 1:
-                        temp_player_pos[1] += 1
-
-                    if temp_player_pos == enemy_pos and enemy_health > 0:
-                         predicted_enemy_health_display = enemy_health - 1
-                         predicted_combat_pos_display = enemy_pos
-
-
+                temp_player_pos = list(player_pos) # Create a temporary copy
+                if event.key == pygame.K_LEFT and temp_player_pos[0] > 0:
+ temp_player_pos[0] -= 1
+ elif event.key == pygame.K_RIGHT and temp_player_pos[0] < grid_size - 1:
+ temp_player_pos[0] += 1
+ elif event.key == pygame.K_UP and temp_player_pos[1] > 0:
+ temp_player_pos[1] -= 1
+ elif event.key == pygame.K_DOWN and temp_player_pos[1] < grid_size - 1:
+ temp_player_pos[1] += 1
 
                 if moved:
                     # Check for combat after player move
@@ -109,14 +111,9 @@ while running:
                     if player_pos == enemy_pos:
                         print("Combat!")
                         # Simple combat logic: player deals 1 damage
-                        if enemy_health > 0: # Ensure enemy is still alive before dealing damage
-                            enemy_health -= 1
-                            if enemy_health <= 0:
-                                print("Enemy defeated!")
-                                enemy_pos = [-1, -1] # Move enemy off-screen
-
+                        enemy_health, enemy_defeated = handle_combat(player_pos, enemy_pos, enemy_health)
                         print(f"Enemy health: {enemy_health}")
-                        if enemy_health <= 0:
+ if enemy_defeated:
                             print("Enemy defeated!")
                             enemy_pos = [-1, -1] # Move enemy off-screen
                     current_turn = "enemy"
@@ -130,6 +127,10 @@ while running:
                     print("Future Sight Active!")
                 elif future_sight_active:
                     future_sight_active = False
+
+ if future_sight_active and temp_player_pos == enemy_pos and enemy_health > 0:
+ predicted_enemy_health_display = enemy_health - 1
+ predicted_combat_pos_display = enemy_pos
 
     # Drawing
     screen.fill(black)  # Fill the background with black
@@ -195,13 +196,14 @@ while running:
             # Check for combat after enemy move
             if player_pos == enemy_pos:
                 print("Combat!")
+                print("Combat!")
                 # Simple combat logic: enemy deals 1 damage
                 if player_health > 0: # Ensure player is still alive
                     player_health -= 1
                     print(f"Player health: {player_health}")
-                    if player_health <= 0:
-                        print("Player defeated!")
-                        # Game over logic would go here
+ if player_health <= 0:
+ print("Player defeated!")
+ # Game over logic would go here
 
         pygame.time.delay(500) # Simulate enemy thinking/action time
         current_turn = "player"
