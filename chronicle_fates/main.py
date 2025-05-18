@@ -15,9 +15,13 @@ cell_size = 50
 # Player position (in grid coordinates)
 player_pos = [0, 0]
 
+# Enemy position (in grid coordinates)
+enemy_pos = [grid_size - 1, grid_size - 1] # Example starting position for the enemy
+
 # Colors
 white = (255, 255, 255)
 blue = (0, 0, 255)
+red = (255, 0, 0)
 
 # Create the screen surface
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -60,6 +64,10 @@ while running:
     # Draw the player
     player_rect = pygame.Rect(player_pos[0] * cell_size, player_pos[1] * cell_size, cell_size, cell_size)
     pygame.draw.rect(screen, blue, player_rect)
+
+    # Draw the enemy
+    enemy_rect = pygame.Rect(enemy_pos[0] * cell_size, enemy_pos[1] * cell_size, cell_size, cell_size)
+    pygame.draw.rect(screen, red, enemy_rect)
 
     # Update the display
     pygame.display.flip()
