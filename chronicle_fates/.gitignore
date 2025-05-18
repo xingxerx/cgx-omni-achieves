@@ -1,0 +1,14 @@
+gitignore
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Pygame
+.pygame/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+wheels/
+*.egg-info/
